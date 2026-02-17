@@ -49,14 +49,14 @@ jobs:
       - name: Force New Deployment (Frontend)
         run: |
           aws ecs update-service \
-          --cluster $ECS_CLUSTER \
-          --service $ECS_FRONTEND_SERVICE \
+          --cluster pgagi-cluster-dev \
+          --service pgagi-frontend-service-dev \
           --force-new-deployment
 
       - name: Force New Deployment (Backend)
         run: |
           aws ecs update-service \
-          --cluster $ECS_CLUSTER \
-          --service $ECS_BACKEND_SERVICE \
+          --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
+          --service ${{ secrets.ECS_BACKEND_SERVICE }} \
           --force-new-deployment
 
