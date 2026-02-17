@@ -1,68 +1,76 @@
-name: Build & Deploy to ECS (Staging)
+name: Deploy to ECS
 
 on:
   push:
     branches:
       - main
+      - develop
 
 jobs:
   deploy:
-    name: Build & Deploy
     runs-on: ubuntu-latest
 
     steps:
-
-    #Checkout code
-    - name: Checkout Code
+    - name: Checkout
       uses: actions/checkout@v3
 
-    #Configure AWS credentials
-    - name: Configure AWS Credentials
+    - name: Configure AWS
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+        aws-region: ap-south-1
 
-    #Login to ECR
-    - name: Login to Amazon ECR
+    - name: Login to ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    #Build & Push FRONTEND
-    - name: Build & Push Frontend Image
+    - name: Set ENV based on branch
       run: |
-        docker build -t $ECR_FRONTEND_REPO ./frontend
-        docker tag $ECR_FRONTEND_REPO:latest \
-        ${{ steps.login-ecr.outputs.registry }}/$ECR_FRONTEND_REPO:latest
-        docker push \
-        ${{ steps.login-ecr.outputs.registry }}/$ECR_FRONTEND_REPO:latest
-      env:
-        ECR_FRONTEND_REPO: ${{ secrets.ECR_FRONTEND_REPO }}
+        if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+          echo "ENV=prod" >> $GITHUB_ENV
+          echo "API_URL=${{ secrets.NEXT_PUBLIC_API_URL_PROD }}" >> $GITHUB_ENV
+          echo "CLUSTER=${{ secrets.ECS_CLUSTER_NAME_PROD }}" >> $GITHUB_ENV
+          echo "FRONTEND=${{ secrets.ECS_FRONTEND_SERVICE_PROD }}" >> $GITHUB_ENV
+          echo "BACKEND=${{ secrets.ECS_BACKEND_SERVICE_PROD }}" >> $GITHUB_ENV
+        else
+          echo "ENV=staging" >> $GITHUB_ENV
+          echo "API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> $GITHUB_ENV
+          echo "CLUSTER=${{ secrets.ECS_CLUSTER_NAME }}" >> $GITHUB_ENV
+          echo "FRONTEND=${{ secrets.ECS_FRONTEND_SERVICE }}" >> $GITHUB_ENV
+          echo "BACKEND=${{ secrets.ECS_BACKEND_SERVICE }}" >> $GITHUB_ENV
+        fi
 
-    #Build & Push BACKEND
-    - name: Build & Push Backend Image
+    - name: Build Frontend
       run: |
-        docker build -t $ECR_BACKEND_REPO ./backend
-        docker tag $ECR_BACKEND_REPO:latest \
-        ${{ steps.login-ecr.outputs.registry }}/$ECR_BACKEND_REPO:latest
-        docker push \
-        ${{ steps.login-ecr.outputs.registry }}/$ECR_BACKEND_REPO:latest
-      env:
-        ECR_BACKEND_REPO: ${{ secrets.ECR_BACKEND_REPO }}
+        docker build \
+        --build-arg NEXT_PUBLIC_API_URL=$API_URL \
+        -t pgagi-frontend ./frontend
 
-    #Force ECS Frontend Deployment (STAGING)
-    - name: Force New Deployment (Frontend)
+        docker tag pgagi-frontend:latest \
+        ${{ steps.login-ecr.outputs.registry }}/pgagi-frontend:latest
+
+        docker push \
+        ${{ steps.login-ecr.outputs.registry }}/pgagi-frontend:latest
+
+    - name: Build Backend
+      run: |
+        docker build -t pgagi-backend ./backend
+        docker tag pgagi-backend:latest \
+        ${{ steps.login-ecr.outputs.registry }}/pgagi-backend:latest
+        docker push \
+        ${{ steps.login-ecr.outputs.registry }}/pgagi-backend:latest
+
+    - name: Deploy Frontend
       run: |
         aws ecs update-service \
-          --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
-          --service ${{ secrets.ECS_FRONTEND_SERVICE }} \
-          --force-new-deployment
+        --cluster $CLUSTER \
+        --service $FRONTEND \
+        --force-new-deployment
 
-    #Force ECS Backend Deployment (STAGING)
-    - name: Force New Deployment (Backend)
+    - name: Deploy Backend
       run: |
         aws ecs update-service \
-          --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
-          --service ${{ secrets.ECS_BACKEND_SERVICE }} \
-          --force-new-deployment
+        --cluster $CLUSTER \
+        --service $BACKEND \
+        --force-new-deployment
