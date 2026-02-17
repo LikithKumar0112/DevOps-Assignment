@@ -1,0 +1,12 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.backup
+
+# Node
+node_modules/
+.next/
+
+# OS
+.DS_Store
+
