@@ -34,11 +34,11 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Frontend
+      - name: Build & Push Frontend
         run: |
-          docker build \
-            --build-arg NEXT_PUBLIC_API_URL=/api \
-            -t ${{ secrets.ECR_FRONTEND_REPO }}:latest ./frontend
+          docker build -t $ECR_FRONTEND_REPO ./frontend
+          docker tag $ECR_FRONTEND_REPO:latest ${{ steps.login-ecr.outputs.registry }}/$ECR_FRONTEND_REPO:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_FRONTEND_REPO:latest
 
       - name: Build & Push Backend
         run: |
