@@ -1,17 +1,9 @@
-name: Deploy to ECS
+name: Build & Deploy to ECS (Staging)
 
 on:
   push:
     branches:
       - main
-
-env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  ECR_FRONTEND_REPO: ${{ secrets.ECR_FRONTEND_REPO }}
-  ECR_BACKEND_REPO: ${{ secrets.ECR_BACKEND_REPO }}
-  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
-  ECS_FRONTEND_SERVICE: ${{ secrets.ECS_FRONTEND_SERVICE }}
-  ECS_BACKEND_SERVICE: ${{ secrets.ECS_BACKEND_SERVICE }}
 
 jobs:
   deploy:
@@ -20,43 +12,57 @@ jobs:
 
     steps:
 
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    #Checkout code
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+    #Configure AWS credentials
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+    #Login to ECR
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Frontend
-        run: |
-          docker build \
-            --build-arg NEXT_PUBLIC_API_URL=/api \
-            -t ${{ secrets.ECR_FRONTEND_REPO }}:latest ./frontend
+    #Build & Push FRONTEND
+    - name: Build & Push Frontend Image
+      run: |
+        docker build -t $ECR_FRONTEND_REPO ./frontend
+        docker tag $ECR_FRONTEND_REPO:latest \
+        ${{ steps.login-ecr.outputs.registry }}/$ECR_FRONTEND_REPO:latest
+        docker push \
+        ${{ steps.login-ecr.outputs.registry }}/$ECR_FRONTEND_REPO:latest
+      env:
+        ECR_FRONTEND_REPO: ${{ secrets.ECR_FRONTEND_REPO }}
 
-      - name: Build & Push Backend
-        run: |
-          docker build -t $ECR_BACKEND_REPO ./backend
-          docker tag $ECR_BACKEND_REPO:latest ${{ steps.login-ecr.outputs.registry }}/$ECR_BACKEND_REPO:latest
-          docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_BACKEND_REPO:latest
+    #Build & Push BACKEND
+    - name: Build & Push Backend Image
+      run: |
+        docker build -t $ECR_BACKEND_REPO ./backend
+        docker tag $ECR_BACKEND_REPO:latest \
+        ${{ steps.login-ecr.outputs.registry }}/$ECR_BACKEND_REPO:latest
+        docker push \
+        ${{ steps.login-ecr.outputs.registry }}/$ECR_BACKEND_REPO:latest
+      env:
+        ECR_BACKEND_REPO: ${{ secrets.ECR_BACKEND_REPO }}
 
-      - name: Force New Deployment (Frontend)
-        run: |
-          aws ecs update-service \
+    #Force ECS Frontend Deployment (STAGING)
+    - name: Force New Deployment (Frontend)
+      run: |
+        aws ecs update-service \
           --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
           --service ${{ secrets.ECS_FRONTEND_SERVICE }} \
           --force-new-deployment
 
-      - name: Force New Deployment (Backend)
-        run: |
-          aws ecs update-service \
+    #Force ECS Backend Deployment (STAGING)
+    - name: Force New Deployment (Backend)
+      run: |
+        aws ecs update-service \
           --cluster ${{ secrets.ECS_CLUSTER_NAME }} \
           --service ${{ secrets.ECS_BACKEND_SERVICE }} \
           --force-new-deployment
-
