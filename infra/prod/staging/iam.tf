@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ecs_execution_role" {
-  name = "pgagi-ecs-execution-role-prod"
+  name = "pgagi-ecs-execution-role-staging"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

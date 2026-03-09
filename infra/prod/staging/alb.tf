@@ -1,5 +1,5 @@
 resource "aws_lb" "pgagi_alb" {
-  name               = "pgagi-alb-prod"
+  name               = "pgagi-alb-staging"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
@@ -9,12 +9,12 @@ resource "aws_lb" "pgagi_alb" {
   ]
 
   tags = {
-    Name = "pgagi-alb-prod"
+    Name = "pgagi-alb-staging"
   }
 }
 
 resource "aws_lb_target_group" "frontend_tg" {
-  name        = "pgagi-frontend-tg-prod"
+  name        = "pgagi-frontend-tg-staging"
   port        = 3000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.pgagi_vpc.id
@@ -32,7 +32,7 @@ resource "aws_lb_target_group" "frontend_tg" {
 }
 
 resource "aws_lb_target_group" "backend_tg" {
-  name        = "pgagi-backend-tg-prod"
+  name        = "pgagi-backend-tg-staging"
   port        = 5000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.pgagi_vpc.id

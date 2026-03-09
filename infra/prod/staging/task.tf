@@ -1,5 +1,5 @@
 resource "aws_ecs_task_definition" "backend_task" {
-  family                   = "pgagi-backend-task-dev"
+  family                   = "pgagi-backend-task-staging"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -24,7 +24,7 @@ resource "aws_ecs_task_definition" "backend_task" {
 }
 
 resource "aws_ecs_task_definition" "frontend_task" {
-  family                   = "pgagi-frontend-task-dev"
+  family                   = "pgagi-frontend-task-staging"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -47,3 +47,4 @@ resource "aws_ecs_task_definition" "frontend_task" {
     }
   ])
 }
+

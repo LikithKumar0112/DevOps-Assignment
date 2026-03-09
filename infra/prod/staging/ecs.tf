@@ -1,9 +1,9 @@
 resource "aws_ecs_cluster" "pgagi_cluster" {
-  name = "pgagi-cluster-${var.environment}"
+  name = "pgagi-cluster-staging"
 }
 
 resource "aws_security_group" "alb_sg" {
-  name        = "pgagi-alb-sg-${var.environment}"
+  name        = "pgagi-alb-sg-staging"
   description = "Allow HTTP traffic"
   vpc_id      = aws_vpc.pgagi_vpc.id
 
@@ -23,7 +23,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "ecs_sg" {
-  name        = "pgagi-ecs-sg-${var.environment}"
+  name        = "pgagi-ecs-sg-staging"
   description = "Allow traffic from ALB"
   vpc_id      = aws_vpc.pgagi_vpc.id
 

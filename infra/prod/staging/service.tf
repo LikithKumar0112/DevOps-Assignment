@@ -1,9 +1,9 @@
 resource "aws_ecs_service" "backend_service" {
-  name            = "pgagi-backend-service-${var.environment}"
+  name            = "pgagi-backend-service-staging"
   cluster         = aws_ecs_cluster.pgagi_cluster.id
   task_definition = aws_ecs_task_definition.backend_task.arn
   launch_type     = "FARGATE"
-  desired_count   = var.desired_count
+  desired_count   = 1
 
   network_configuration {
     subnets = [
@@ -26,11 +26,11 @@ resource "aws_ecs_service" "backend_service" {
 }
 
 resource "aws_ecs_service" "frontend_service" {
-  name            = "pgagi-frontend-service-${var.environment}"
+  name            = "pgagi-frontend-service-staging"
   cluster         = aws_ecs_cluster.pgagi_cluster.id
   task_definition = aws_ecs_task_definition.frontend_task.arn
   launch_type     = "FARGATE"
-  desired_count   = var.desired_count
+  desired_count   = 1
 
   network_configuration {
     subnets = [

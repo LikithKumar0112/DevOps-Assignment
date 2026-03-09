@@ -7,7 +7,7 @@ resource "aws_route_table" "public_rt" {
   }
 
   tags = {
-    Name = "pgagi-public-rt-prod"
+    Name = "pgagi-public-rt-staging"
   }
 }
 

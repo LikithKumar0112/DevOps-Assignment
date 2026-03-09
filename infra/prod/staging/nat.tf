@@ -2,7 +2,7 @@ resource "aws_eip" "nat_eip" {
   domain = "vpc"
 
   tags = {
-    Name = "pgagi-nat-eip-prod"
+    Name = "pgagi-nat-eip-staging"
   }
 }
 
@@ -11,7 +11,7 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = aws_subnet.public_subnet.id
 
   tags = {
-    Name = "pgagi-nat-prod"
+    Name = "pgagi-nat-staging"
   }
 }
 
@@ -24,7 +24,7 @@ resource "aws_route_table" "private_rt" {
   }
 
   tags = {
-    Name = "pgagi-private-rt-prod"
+    Name = "pgagi-private-rt-staging"
   }
 }
 

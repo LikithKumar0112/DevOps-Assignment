@@ -5,7 +5,7 @@ resource "aws_subnet" "public_subnet" {
   availability_zone       = "ap-south-1a"
 
   tags = {
-    Name = "pgagi-public-subnet-prod"
+    Name = "pgagi-public-subnet-staging"
   }
 }
 
@@ -15,7 +15,7 @@ resource "aws_subnet" "private_subnet" {
   availability_zone = "ap-south-1a"
 
   tags = {
-    Name = "pgagi-private-subnet-prod"
+    Name = "pgagi-private-subnet-staging"
   }
 }
 
@@ -26,7 +26,7 @@ resource "aws_subnet" "public_subnet_2" {
   availability_zone       = "ap-south-1b"
 
   tags = {
-    Name = "pgagi-public-subnet-2-prod"
+    Name = "pgagi-public-subnet-2-staging"
   }
 }
 
@@ -36,7 +36,7 @@ resource "aws_subnet" "private_subnet_2" {
   availability_zone = "ap-south-1b"
 
   tags = {
-    Name = "pgagi-private-subnet-2-prod"
+    Name = "pgagi-private-subnet-2-staging"
   }
 }
 

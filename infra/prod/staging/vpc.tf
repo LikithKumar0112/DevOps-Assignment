@@ -4,7 +4,7 @@ resource "aws_vpc" "pgagi_vpc" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "pgagi-vpc-prod"
+    Name = "pgagi-vpc-staging"
   }
 }
 
